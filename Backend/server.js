@@ -1,4 +1,6 @@
 const express = require('express');
+const mongoose = require('mongoose');
+
 const dotenv = require('dotenv');
 const colors = require('colors');
 
@@ -6,7 +8,31 @@ dotenv.config({ path: './config/config.env' });
 
 const app = express();
 
-app.get('/', (req, res) => res.send('Hello world!'));
+// Setup Mongoose & MongoDB
+mongoose.connect(
+  'mongodb+srv://mndgmndg:mndgmndg@cluster0.fyj4j2t.mongodb.net/test?retryWrites=true&w=majority',
+  { useNewUrlParser: true })
+  .then(() => {
+    console.log('Connected to the database');
+    // Perform additional operations here
+  })
+  .catch((error) => {
+    console.log(`Failed to connect to the database: ${error}`);
+  });
+
+// Import Routes
+const authRoute = require('./src/routes/auth');
+
+// Route Middlewares
+app.use('/api/user', authRoute);
+
+
+
+// Default Route
+app.get('/api', (req, res) => res.send('Hello world!'));
+
+
+
 
 const PORT = process.env.PORT || 5000;
 
