@@ -7,26 +7,41 @@ const colors = require('colors');
 dotenv.config({ path: './config/config.env' });
 
 const app = express();
-
 // Setup Mongoose & MongoDB
-mongoose.connect(
-  'mongodb+srv://mndgmndg:mndgmndg@cluster0.fyj4j2t.mongodb.net/test?retryWrites=true&w=majority',
-  { useNewUrlParser: true })
-  .then(() => {
-    console.log('Connected to the database');
-    // Perform additional operations here
-  })
-  .catch((error) => {
-    console.log(`Failed to connect to the database: ${error}`);
+// const client =mongoose.connect(
+  // 'mongodb+srv://mndgmndg:mndgmndg@cluster0.fyj4j2t.mongodb.net/test?retryWrites=true&w=majority',
+  // { useNewUrlParser: true ,
+  //   useUnifiedTopology: true,
+  //   writeConcern: {
+  //     w: 'majority',
+  //     j: true,
+  //     wtimeout: 1000
+  //   }})
+  // .then(() => {
+  //   console.log('Connected to the database');
+  //   // Perform additional operations here
+  // })
+  // .catch((error) => {
+  //   console.log(`Failed to connect to the database: ${error}`);
+  // });
+  mongoose.connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
   });
-
-// Import Routes
+  
+  // Check if the connection is successful
+  const db = mongoose.connection;
+  db.on('error', console.error.bind(console, 'Connection error:'));
+  db.once('open', function() {
+    console.log('Connected to MongoDB');
+  });
+// // Import Routes
 const authRoute = require('./src/routes/auth');
 
-// Route Middlewares
-app.use('/api/user', authRoute);
+// // Middleware
+app.use(express.json());
 
-
+// // Route Middlewares
+app.use('/api/users', authRoute);
 
 // Default Route
 app.get('/api', (req, res) => res.send('Hello world!'));
