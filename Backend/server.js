@@ -7,7 +7,6 @@ const colors = require('colors');
 dotenv.config({ path: './config/config.env' });
 
 const app = express();
-
 // Setup Mongoose & MongoDB
 
 mongoose.connect(
@@ -20,8 +19,14 @@ mongoose.connect(
   .catch((error) => {
     console.log(`Failed to connect to the database: ${error}`);
   });
-
-// Import Routes
+  
+  // Check if the connection is successful
+  const db = mongoose.connection;
+  db.on('error', console.error.bind(console, 'Connection error:'));
+  db.once('open', function() {
+    console.log('Connected to MongoDB');
+  });
+// // Import Routes
 const authRoute = require('./src/routes/auth');
 
 // Middleware
@@ -30,6 +35,8 @@ app.use(express.json());
 app.use('/api/users', authRoute);
 
 
+// // Route Middlewares
+app.use('/api/users', authRoute);
 
 // Default Route
 app.get('/api', (req, res) => res.send('Hello world!'));

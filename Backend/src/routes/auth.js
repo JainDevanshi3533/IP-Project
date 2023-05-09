@@ -17,6 +17,7 @@ router.post('/signup', async (req, res) => {
   }
 });
 
+// Sign in
 router.post('/signin', (req, res) => {
   res.send('Sign in');
 });
