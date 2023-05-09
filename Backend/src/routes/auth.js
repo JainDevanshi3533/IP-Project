@@ -1,13 +1,28 @@
 const router = require('express').Router();
 const User = require('../models/User');
 
+const Joi = require('@hapi/joi'); // Validation
+
+const schema = Joi.object({
+  name: Joi.string().min(6).required(),
+  email: Joi.string().min(6).required().email(),
+  password: Joi.string().min(6).required(),
+});
+
 // Sign up
 router.post('/signup', async (req, res) => {
+    // Validation before creation
+    const { error } = schema.validate(req.body);
+    if (error) return res.status(400).send(error.details[0].message);
+  
+    // Create new user from request body
   const user = new User({
     name: req.body.name,
     email: req.body.email,
     password: req.body.password,
   });
+
+  // Try to save otherwise send error
 
   try {
     const savedUser = await user.save();
