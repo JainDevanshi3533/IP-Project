@@ -9,11 +9,12 @@ dotenv.config({ path: './config/config.env' });
 const app = express();
 
 // Setup Mongoose & MongoDB
+
 mongoose.connect(
   'mongodb+srv://mndgmndg:mndgmndg@cluster0.fyj4j2t.mongodb.net/test?retryWrites=true&w=majority',
   { useNewUrlParser: true })
   .then(() => {
-    console.log('Connected to the database');
+    console.log('Connected to the database'.magenta);
     // Perform additional operations here
   })
   .catch((error) => {
@@ -23,8 +24,10 @@ mongoose.connect(
 // Import Routes
 const authRoute = require('./src/routes/auth');
 
+// Middleware
+app.use(express.json());
 // Route Middlewares
-app.use('/api/user', authRoute);
+app.use('/api/users', authRoute);
 
 
 
