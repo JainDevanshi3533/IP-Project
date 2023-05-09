@@ -1,32 +1,35 @@
 const router = require('express').Router();
 const User = require('../models/User');
 
-const Joi = require('@hapi/joi'); // Validation
-
-const schema = Joi.object({
-  name: Joi.string().min(6).required(),
-  email: Joi.string().min(6).required().email(),
-  password: Joi.string().min(6).required(),
-});
+const { signUpValidation, signInValidation } = require('./validation');
+const bcrypt = require('bcryptjs');
 
 // Sign up
 router.post('/signup', async (req, res) => {
     // Validation before creation
-    const { error } = schema.validate(req.body);
+    const { error } = signUpValidation(req.body);
     if (error) return res.status(400).send(error.details[0].message);
   
+      // Check for unique email
+  const emailExist = await User.findOne({ email: req.body.email });
+  if (emailExist) return res.status(400).send('email already exists');
+
+    // Password hashing
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(req.body.password, salt);
+
     // Create new user from request body
   const user = new User({
     name: req.body.name,
     email: req.body.email,
-    password: req.body.password,
+    password: hashedPassword,
   });
 
   // Try to save otherwise send error
 
   try {
-    const savedUser = await user.save();
-    res.send(savedUser);
+    await user.save();
+    res.send({ user: user._id, email: user.email });
   } catch (err) {
     res.status(400).send(err);
   }
