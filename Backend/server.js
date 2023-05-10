@@ -5,8 +5,14 @@ const dotenv = require('dotenv');
 const colors = require('colors');
 
 dotenv.config({ path: './config/config.env' });
+// // Import Routes
+const authRoute = require('./src/routes/auth');
 
+const samplePrivateRoute = require('./src/routes/samplePrivate');
+
+// Create instance of express
 const app = express();
+
 // Setup Mongoose & MongoDB
 
 mongoose.connect(
@@ -26,14 +32,12 @@ mongoose.connect(
   db.once('open', function() {
     console.log('Connected to MongoDB');
   });
-// // Import Routes
-const authRoute = require('./src/routes/auth');
 
 // Middleware
 app.use(express.json());
 // Route Middlewares
 app.use('/api/users', authRoute);
-
+app.use('/api/sample-private', samplePrivateRoute);
 
 // // Route Middlewares
 app.use('/api/users', authRoute);
