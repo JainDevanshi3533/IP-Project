@@ -1,9 +1,10 @@
 const router = require('express').Router();
-const User = require('../models/User');
-
 const { signUpValidation, signInValidation } = require('./validation');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const User = require('../models/User');
+
+
 // Sign up
 router.post('/signup', async (req, res) => {
     // Validation before creation

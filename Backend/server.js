@@ -39,9 +39,6 @@ app.use(express.json());
 app.use('/api/users', authRoute);
 app.use('/api/sample-private', samplePrivateRoute);
 
-// // Route Middlewares
-app.use('/api/users', authRoute);
-
 // Default Route
 app.get('/api', (req, res) => res.send('Hello world!'));
 
