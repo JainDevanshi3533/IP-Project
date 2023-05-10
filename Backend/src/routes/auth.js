@@ -3,7 +3,7 @@ const User = require('../models/User');
 
 const { signUpValidation, signInValidation } = require('./validation');
 const bcrypt = require('bcryptjs');
-
+const jwt = require('jsonwebtoken');
 // Sign up
 router.post('/signup', async (req, res) => {
     // Validation before creation
@@ -36,8 +36,27 @@ router.post('/signup', async (req, res) => {
 });
 
 // Sign in
-router.post('/signin', (req, res) => {
-  res.send('Sign in');
+router.post('/signin', async (req, res) => {
+  // Validation before creation
+  const { error } = signInValidation(req.body);
+  if (error) return res.status(400).send(error.details[0].message);
+
+  // // Obscure 400 incorrect email or password messages to prevent hacking
+  // Check if email exists
+  const user = await User.findOne({ email: req.body.email });
+  if (!user) {
+    return res.status(400).send('email or password is incorrect');
+  }
+
+  // Check if password is correct
+  const validPass = await bcrypt.compare(req.body.password, user.password);
+  if (!validPass) return res.status(400).send('email or password is incorrect');
+
+  // Create and assign a token
+  const token = jwt.sign({ _id: user.id }, process.env.TOKEN_SECRET);
+  res.header('auth-token', token).send(token);
+
+  res.send('signed in');
 });
 
 // Sign out
