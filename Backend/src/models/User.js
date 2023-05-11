@@ -2,31 +2,30 @@ const mongoose = require('mongoose');
 const calendarSchema = require('./Calendar');
 
 const userSchema = new mongoose.Schema({
-  name: {
+  firstName: {
     type: String,
-    required: true,
-    min: 6,
-    max: 255,
+    required: [true, 'first name can not be blank'],
+    minlength: 2,
+    maxlength: 255,
     trim: true,
   },
   lastName: {
     type: String,
-    required: true,
-    min: 6,
-    max: 255,
+    required: [true, 'last name can not be blank'],
+    minlength: 2,
+    maxlength: 255,
     trim: true,
   },
   title: {
     type: String,
-    min: 6,
-    max: 255,
+    minlength: 6,
+    maxlength: 255,
     trim: true,
   },
   sex: {
-    type: Boolean,
     type: String,
+    lowercase: true,
     enum: ['male', 'female'],
-    default: null,
   },
   weight: {
     type: Number,
@@ -38,92 +37,197 @@ const userSchema = new mongoose.Schema({
   },
   phoneNumber: {
     type: String,
-    min: 10,
-    max: 12,
+    minlength: 10,
+    maxlength: 12,
     trim: true,
   },
   address: {
-    number: { type: Number, min: 1, max: 5000 },
-    street: { type: String, min: 1, max: 255, trim: true },
-    city: { type: String, min: 1, max: 255, trim: true },
-    state: { type: String, min: 1, max: 255, trim: true },
-    country: { type: String, min: 1, max: 255, trim: true },
-    postcode: { type: Number, min: 1, max: 10000 },
+    number: {
+      type: Number,
+      min: 1,
+      max: 5000
+    },
+    street: {
+      type: String,
+      minlength: 1,
+      maxlength: 255,
+      trim: true
+    },
+    city: {
+      type: String,
+      minlength: 1,
+      maxlength: 255,
+      trim: true
+    },
+    state: {
+      type: String,
+      minlength: 1,
+      maxlength: 255,
+      trim: true
+    },
+    country: {
+      type: String,
+      minlength: 1,
+      maxlength: 255,
+      trim: true
+    },
+    postcode: {
+      type: Number,
+      min: 1,
+      max: 10000
+    },
   },
   email: {
     type: String,
-    required: true,
-    min: 255,
-    max: 6,
-    unique: true,
+    required: [true, 'email name can not be blank'],
+    minlength: 6,
+    maxlength: 255,
     trim: true,
+    unique: true,
   },
   password: {
     type: String,
-    required: true,
-    min: 1024,
-    max: 6,
+    required: [true, 'password can not be blank'],
+    minlength: 6,
+    maxlength: 1024,
     trim: true,
   },
-  date: {
-    type: Date,
-    default: Date.now,
+  isDoctor: {
+    type: Boolean,
+    default: false,
   },
-isDoctor: {
-  type: Boolean,
-  required: true,
-},
-doctorInfo: {
-  specialtyField: { type: String, min: 1, max: 255, trim: true },
-  subSpecialtyField: { type: String, min: 1, max: 255, trim: true },
-  education: { type: String },
-  calendar: { calendarSchema },
-},
-clientInfo: {
-  medicalHistory: [
-    {
+  doctorInfo: {
+    licence: {
+      type: String,
+      min: 6,
+      max: 12
+    },
+    accreditation: [{
+      type: String,
+      minlength: 1,
+      maxlength: 255,
+    }, ],
+    specialtyField: {
+      type: String,
+      minlength: 1,
+      maxlength: 255,
+      trim: true
+    },
+    subSpecialtyField: {
+      type: String,
+      minlength: 1,
+      maxlength: 255,
+      trim: true,
+    },
+    education: [{
+      type: String,
+      minlength: 1,
+      maxlength: 255,
+    }, ],
+    yearsExperience: {
+      type: Number,
+      min: 1,
+      max: 100
+    },
+    tags: [{
+      type: String,
+      minlength: 1,
+      maxlength: 255,
+    }, ],
+    languagesSpoken: [{
+      type: String,
+      minlength: 1,
+      maxlength: 255,
+    }, ],
+    calendar: {
+      calendarSchema
+    },
+    rating: {
+      type: Number,
+      min: 1,
+      max: 5
+    },
+  },
+  clientInfo: {
+    medicalHistory: [{
       _id: {
         type: mongoose.Schema.Types.ObjectId,
         index: true,
         auto: true,
       },
-      startDate: { type: Date },
-      condition: { type: String, min: 1, max: 255, trim: true },
-      notes: { type: String, min: 1, max: 1000 },
-    },
-  ],
-  allergies: [
-    {
+      startDate: {
+        type: Date
+      },
+      condition: {
+        type: String,
+        minlength: 1,
+        maxlength: 255,
+        trim: true
+      },
+      notes: {
+        type: String,
+        minlength: 1,
+        maxlength: 1000,
+        trim: true
+      },
+    }, ],
+    allergies: [{
       _id: {
         type: mongoose.Schema.Types.ObjectId,
         index: true,
         auto: true,
       },
-      name: { type: String, min: 1, max: 255, trim: true },
-      severity: { type: Number, min: 1, max: 5, default: 1 },
-    },
-  ],
-  medication: [
-    {
+      name: {
+        type: String,
+        minlength: 1,
+        maxlength: 255,
+        trim: true
+      },
+      severity: {
+        type: Number,
+        min: 1,
+        max: 5,
+        default: 1
+      },
+    }, ],
+    medication: [{
       _id: {
         type: mongoose.Schema.Types.ObjectId,
         index: true,
         auto: true,
       },
-      drugName: { type: String, min: 1, max: 255, trim: true },
-      dosage: { type: Number, min: 1, max: 10000 },
-      manufacturer: { type: String, min: 1, max: 255, trim: true },
+      name: {
+        type: String,
+        minlength: 1,
+        maxlength: 255,
+        trim: true
+      },
+      dosage: {
+        type: Number,
+        min: 1,
+        max: 10000
+      },
+      manufacturer: {
+        type: String,
+        minlength: 1,
+        maxlength: 255,
+        trim: true,
+      },
+    }, ],
+    bloodType: {
+      type: String,
+      uppercase: true,
+      enum: ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'],
     },
-  ],
-  createDate: {
-    type: Date,
-    default: Date.now,
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
+    modifiedAt: {
+      type: Date,
+      default: Date.now,
+    },
   },
-  modifiedDate: {
-    type: Date,
-    default: Date.now,
-  },
-},
 });
 
 module.exports = mongoose.model('User', userSchema);
