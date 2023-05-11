@@ -16,7 +16,7 @@ router.post('/signup', async (req, res) => {
   if (emailExist) return res.status(400).send('email already exists');
 
     // Password hashing
-    const salt = await bcrypt.genSalt(10);
+    const salt = await bcrypt.genSalt(8);
     const hashedPassword = await bcrypt.hash(req.body.password, salt);
 
     // Create new user from request body
@@ -50,10 +50,12 @@ router.post('/signin', async (req, res) => {
   }
 
   // Check if password is correct
-  const validPass = await bcrypt.compare(req.body.password, user.password);
-  if (!validPass) return res.status(400).send('email or password is incorrect');
-
-  // Create and assign a token
+  const isMatchedPass = await bcrypt.compare(req.body.password, user.password);
+  if (!isMatchedPass)
+    return res.status(400).send('email or password is incorrect');
+  
+  
+    // Create and assign a token
   const token = jwt.sign({ _id: user.id }, process.env.TOKEN_SECRET);
   res.header('auth-token', token).send(token);
 
@@ -62,20 +64,31 @@ router.post('/signin', async (req, res) => {
 
 // Sign out
 
-// Users listing
+// Users (All)
 router.get('/', async (req, res) => {
-  try {
-    const users = await User.find({});
-    const userMap = {};
-    users.forEach(function (user) {
-      userMap[user._id] = user;
-    });
-    res.send(userMap);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server Error' });
+  try{
+    const users = await User.find({})
+    res.send(users)
+  }catch (err){
+    res.status(500).send()
   }
 });
+
+// User (One)
+router.get('/:id', async (req, res )=> {
+  const _id = req.params.id;
+  try {
+    const user = await User.findById(_id)
+    if (!user){
+      return res.status(404).send();
+    }
+
+    res.send(user)
+  }catch (err) {
+    res.status(500).send();
+  }
+
+})
 
 
 module.exports = router;
