@@ -3,6 +3,7 @@ const { signUpValidation, signInValidation } = require('./validation');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const verifyToken = require('./verifyToken');
 
 
 // Sign up
@@ -31,8 +32,8 @@ router.post('/signup', async (req, res) => {
   try {
     await user.save();
     res.send({ user: user._id, email: user.email });
-  } catch (err) {
-    res.status(400).send(err);
+  } catch (e) {
+    res.status(400).send(e);
   }
 });
 
@@ -69,7 +70,7 @@ router.get('/', async (req, res) => {
   try{
     const users = await User.find({})
     res.send(users)
-  }catch (err){
+  }catch (e){
     res.status(500).send()
   }
 });
@@ -84,11 +85,53 @@ router.get('/:id', async (req, res )=> {
     }
 
     res.send(user)
-  }catch (err) {
+  }catch (e) {
     res.status(500).send();
   }
 
 })
 
 
+// Update profile
+router.patch('/:id', verifyToken, async(req, res) => {
+  const updates = Object.keys(req.body)
+
+  const allowedUpdates = ['firstName', 'lastName', 'title', 'sex', 'weight', 'phoneNumber',  'password']
+  const identityInfo = req.params.isDoctor ? 'doctorInfo' : 'clientInfo'
+  allowedUpdates.push(identityInfo)
+
+  const isValidOperation = updates.every((update) => allowedUpdates.includes(update))
+
+  if (!isValidOperation) return res.status(400).send({error: 'invalid updates'})
+
+  try{
+    const user = await User.findById(req.params.id)
+
+    updates.forEach((update) => user[update] = req.body[update])
+
+
+    if (!user){
+    await user.save()
+      return res.status(404).send("user updated")
+    }
+  }catch (e){
+    res.status(400).send(e)
+  }
+
+})
+
+// Delete account
+router.delete('/:id', verifyToken, async (req, res) => {
+  try{
+    const user = await User.findByIdAndDelete(req.params.id)
+
+    if (!user){
+      return res.status(404).send()
+    }
+
+    res.send(user)
+  }catch(e){
+    res.status(500).send()
+  }
+})
 module.exports = router;
