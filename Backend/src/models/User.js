@@ -131,7 +131,7 @@ const userSchema = new mongoose.Schema({
     ],
     yearsExperience: {
       type: Number,
-      min: 0,
+      min: 1,
       max: 100,
     },
     tags: [
@@ -153,7 +153,7 @@ const userSchema = new mongoose.Schema({
     },
     rating: {
       type: Number,
-      min: 0,
+      min: 1,
       max: 5,
     },
   },
