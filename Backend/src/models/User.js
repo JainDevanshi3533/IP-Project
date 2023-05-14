@@ -1,16 +1,11 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+
 const calendarSchema = require('./Calendar');
 
 const userSchema = new mongoose.Schema({
-  firstName: {
-    type: String,
-    required: [true, 'first name can not be blank'],
-    minlength: 2,
-    maxlength: 255,
-    trim: true,
-  },
-  lastName: {
+  name: {
     type: String,
     required: [true, 'last name can not be blank'],
     minlength: 2,
@@ -131,7 +126,7 @@ const userSchema = new mongoose.Schema({
     ],
     yearsExperience: {
       type: Number,
-      min: 1,
+      min: 0,
       max: 100,
     },
     tags: [
@@ -153,7 +148,7 @@ const userSchema = new mongoose.Schema({
     },
     rating: {
       type: Number,
-      min: 1,
+      min: 0,
       max: 5,
     },
   },
@@ -245,12 +240,35 @@ const userSchema = new mongoose.Schema({
   },
 });
 
+userSchema.methods.generateAuthToken = async function () {
+  const user = this;
+  const token = jwt.sign({ _id: user._id.toString() }, process.env.JWT_SECRET);
+
+  user.tokens = user.tokens.concat({ token });
+  await user.save();
+
+  return token;
+};
+
+userSchema.statics.findByCredentials = async (email, password) => {
+  // // Obscure 400 incorrect email or password messages to prevent hacking
+  // Method 1 // return res.status(400).send('email or password is incorrect');
+  // Method 2 preferred: throw new Error(...)
+
+  // Check if email exists
+  const user = await User.findOne({ email });
+  if (!user) throw new Error('email is incorrect');
+
+  // Check if password is correct
+  const isMatchedPass = await bcrypt.compare(password, user.password);
+  if (!isMatchedPass) throw new Error(' password is incorrect');
+};
+
 // userSchema.pre('save', async function (next) {
 //   const user = this;
 
 //   if (user.isModified('password')) {
-//     const salt = await bcrypt.genSalt(8);
-//     user.password = await bcrypt.hash(user.password, salt);
+//     user.password = await bcrypt.hash(user.password, 8);
 //   }
 
 //   next();
