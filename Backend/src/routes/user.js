@@ -1,12 +1,11 @@
 
 const router = require('express').Router();
 const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
 
-
+const User = require('../models/User');
 const verifyToken = require('./verifyToken');
 const { signUpValidation, signInValidation } = require('./validation');
-const User = require('../models/User');
+
 // Sign up
 router.post('/signup', async (req, res) => {
   // Validation before creation
@@ -17,21 +16,25 @@ router.post('/signup', async (req, res) => {
   const emailExist = await User.findOne({ email: req.body.email });
   if (emailExist) return res.status(400).send('email already exists');
 
-  // Password hashing
-  const salt = await bcrypt.genSalt(8);
-  const hashedPassword = await bcrypt.hash(req.body.password, salt);
+  // // Password hashing
+  // const salt = await bcrypt.genSalt(8);
+  // const hashedPassword = await bcrypt.hash(req.body.password, salt);
 
   // Create new user from request body
-  const user = new User({
-    name: req.body.name,
-    email: req.body.email,
-    password: hashedPassword,
-  });
+  const user = new User(
+    // {
+    //   name: req.body.name,
+    //   email: req.body.email,
+    //   password: hashedPassword,
+    // },
+    req.body
+  );
 
   // Try to save otherwise send error
   try {
     await user.save();
-    res.send({ user: user._id, email: user.email });
+    const token = await user.generateAuthToken;
+    res.status(201).send({ user: user._id, email: user.email, token });
   } catch (e) {
     res.status(400).send(e);
   }
@@ -61,9 +64,31 @@ router.post('/signin', async (req, res) => {
     res.status(400).send();
   }
 });
+// Sign out of current session
+router.post('/signout', verifyToken, async (req, res) => {
+  try {
+    req.user.tokens = req.user.tokens.filter((token) => {
+      return token.token !== req.token;
+    });
+    await req.user.save();
 
-// Sign out
+    res.send();
+  } catch (e) {
+    res.status(500).send();
+  }
+});
 
+// Sign out of all sessions
+router.post('/signoutall', verifyToken, async (req, res) => {
+  try {
+    req.user.tokens = [];
+    await req.user.save();
+
+    res.send();
+  } catch (e) {
+    res.status(500).send();
+  }
+});
 // Users (All)
 router.get('/', async (req, res) => {
   try {
@@ -126,7 +151,6 @@ router.patch('/:id', verifyToken, async (req, res) => {
       return res.status(404).send();
     }
   } catch (e) {
-    console.log(e);
     res.status(400).send(e);
   }
 });

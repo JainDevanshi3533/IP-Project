@@ -238,17 +238,16 @@ const userSchema = new mongoose.Schema({
       default: Date.now,
     },
   },
+  tokens: [
+    {
+      token: {
+        type: String,
+        required: true,
+      },
+    },
+  ],
 });
 
-userSchema.methods.generateAuthToken = async function () {
-  const user = this;
-  const token = jwt.sign({ _id: user._id.toString() }, process.env.JWT_SECRET);
-
-  user.tokens = user.tokens.concat({ token });
-  await user.save();
-
-  return token;
-};
 
 userSchema.statics.findByCredentials = async (email, password) => {
   // // Obscure 400 incorrect email or password messages to prevent hacking
@@ -257,22 +256,41 @@ userSchema.statics.findByCredentials = async (email, password) => {
 
   // Check if email exists
   const user = await User.findOne({ email });
-  if (!user) throw new Error('email is incorrect');
+  if (!user) throw new Error('email  is incorrect');
 
   // Check if password is correct
-  const isMatchedPass = await bcrypt.compare(password, user.password);
-  if (!isMatchedPass) throw new Error(' password is incorrect');
+  const isMatchedPass = await bcrypt.compare(password,user.password);
+
+  if (isMatchedPass==false) throw new Error(`${password}  ${user.password} ${isMatchedPass}`);
 };
 
-// userSchema.pre('save', async function (next) {
-//   const user = this;
+// Create and assign a token
+userSchema.methods.generateAuthToken = async function () {
+  const user = this;
+  const token = jwt.sign(
+    { _id: user._id.toString() },
+    process.env.TOKEN_SECRET
+  );
 
-//   if (user.isModified('password')) {
-//     user.password = await bcrypt.hash(user.password, 8);
-//   }
+  // Concat new token to tokens array
+  user.tokens = user.tokens.concat({ token });
+  await user.save();
 
-//   next();
-// });
+  return token;
+
+  // Method 2 (in route) res.header('auth-token', token).send(token);
+};
+
+userSchema.pre('save', async function (next) {
+  const user = this;
+
+  if (user.isModified('password')) {
+    const salt = await bcrypt.genSalt(8);
+    user.password = await bcrypt.hash(user.password, salt);
+  }
+
+  next();
+});
 
 const User = mongoose.model('User', userSchema);
 
