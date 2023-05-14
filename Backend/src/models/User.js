@@ -249,6 +249,7 @@ const userSchema = new mongoose.Schema({
 });
 
 
+
 userSchema.statics.findByCredentials = async (email, password) => {
   // // Obscure 400 incorrect email or password messages to prevent hacking
   // Method 1 // return res.status(400).send('email or password is incorrect');
@@ -267,20 +268,35 @@ userSchema.statics.findByCredentials = async (email, password) => {
 // Create and assign a token
 userSchema.methods.generateAuthToken = async function () {
   const user = this;
+
   const token = jwt.sign(
     { _id: user._id.toString() },
     process.env.TOKEN_SECRET
   );
-
+  console.log("hh");
+  console.log(token);
   // Concat new token to tokens array
   user.tokens = user.tokens.concat({ token });
+  console.log("hh");
   await user.save();
 
   return token;
 
   // Method 2 (in route) res.header('auth-token', token).send(token);
+  
 };
 
+// userSchema.methods.toJSON = function () {
+//     const user = this;
+//     const userObject = user.toObject();
+  
+//     delete userObject.password;
+//     delete userObject.tokens;
+  
+//     return userObject;
+//   };
+const User = mongoose.model('User', userSchema);
+  
 userSchema.pre('save', async function (next) {
   const user = this;
 
@@ -291,7 +307,5 @@ userSchema.pre('save', async function (next) {
 
   next();
 });
-
-const User = mongoose.model('User', userSchema);
 
 module.exports = User;

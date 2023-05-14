@@ -1,3 +1,4 @@
+// Instruction: https://www.youtube.com/watch?v=2jqok-WgelI
 
 const router = require('express').Router();
 const bcrypt = require('bcryptjs');
@@ -34,7 +35,7 @@ router.post('/signup', async (req, res) => {
   try {
     await user.save();
     const token = await user.generateAuthToken;
-    res.status(201).send({ user: user._id, email: user.email, token });
+    res.status(201).send({ user, token });
   } catch (e) {
     res.status(400).send(e);
   }
@@ -57,6 +58,7 @@ router.post('/signin', async (req, res) => {
     );
 
     // Create and assign a token
+
     const token = await user.generateAuthToken();
     res.send({ user, token });
   } catch (e) {
@@ -64,6 +66,7 @@ router.post('/signin', async (req, res) => {
     res.status(400).send();
   }
 });
+
 // Sign out of current session
 router.post('/signout', verifyToken, async (req, res) => {
   try {
@@ -89,10 +92,19 @@ router.post('/signoutall', verifyToken, async (req, res) => {
     res.status(500).send();
   }
 });
+
+// Get own user's profile
+router.get('/profile', verifyToken, async (req, res) => {
+  res.send(req.user);
+});
+
+// // GET DOCTORS ROUTE (ADD MORE VALIDATION HERE)
 // Users (All)
 router.get('/', async (req, res) => {
   try {
     const users = await User.find({});
+
+    // Only send appropriate data
     res.send(users);
   } catch (e) {
     res.status(500).send();
@@ -108,11 +120,14 @@ router.get('/:id', async (req, res) => {
       return res.status(404).send();
     }
 
+    // Only send appropriate data
     res.send(user);
   } catch (e) {
     res.status(500).send();
   }
 });
+
+// // GET CLIENTS ROUTE
 
 // Update profile
 router.patch('/:id', verifyToken, async (req, res) => {
